@@ -1,0 +1,11 @@
+# 忽略Windows下的C语言可执行文件
+*.exe
+# 忽略其他系统/编译中间产物
+*.o
+*.out
+*.a
+*.dll
+# 忽略IDE生成的调试/发布目录
+Debug/
+Release/
+build/
