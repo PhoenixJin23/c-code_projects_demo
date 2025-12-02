@@ -11,11 +11,12 @@ struct Student class1[10];
 
 
 void addStudent (int *count){ //加指针参数int*count，接收main里count的地址,才能对局部变量count进行修改
+                              //若没有指针，函数只能拿到count的“值拷贝”,不能操作main里的count
     struct Student temp; //尝试创建一个临时储存输入值的数组
     //int id, mood;
     //char name[50];
     char choice='y';
-    //在 addStudent 里：要操作的是 “main里的 count”，但指针变量存的是地址，所以必须用*解引用，才能拿到地址对应的 “数字”
+    //在addStudent里：要操作的是 “main里的count”，但指针变量存的是地址，所以必须用*解引用，才能拿到地址对应的 “数字”
     
     do { //用do-while循环是因为想至少添加一个学生的信息，再询问是否继续
         if (*count>=10){
@@ -42,15 +43,16 @@ void addStudent (int *count){ //加指针参数int*count，接收main里count的
         }
         if (same) {
             printf("输入重复，请再次输入学生id\n");
-            continue; //跳过外层do-while循环当前轮的剩余代码（即跳过 “添加学生到数组” 的步骤）
-                      //直接回到do-while的条件判断（choice=='y'||choice=='Y'），然后重新执行外层循环（让用户重新输入学号等信息）
+            continue; //跳过外层do-while循环当前轮的剩余代码（心情校验、添加数组、询问是否继续）
+                      //直接进入do-while的条件判断（choice=='y'||choice=='Y'）choice仍为'y'，条件成立，
+                      //重新执行外层循环（让用户重新输入学号等信息）
         }             
         
         //输入心情指数要合法
         //printf("mood的实际值：%d\n", temp.mood);
         if (temp.mood<0||temp.mood>100) {
             printf("心情指数非法（0-100），添加失败！\n");
-            continue; //跳过当前do-while循环的剩余代码（第4步 “添加到数组”+第5步 “询问继续”），直接回到do-while的开头
+            continue; //跳过当前do-while循环的剩余代码（添加到数组,询问继续）,不改变choice='y',所以直接从头开始
                       //当if判断为非法时，阻止后续错误操作，并触发do-while循环重试
         }else {
         printf("判断为合法，继续添加\n");
@@ -93,7 +95,8 @@ void queryMood(int *count){ //遍历完所有学生后，再判断是否找到�
             break;
         }
     }
-    if (!found){
+    if (!found){ //可以是if (found==0)但不是if (found=0):=是赋值用0把初始的1覆盖，表达式结果为0导致if条件永远为假，跳过printf
+                 //if不关心括号里是 “赋值” 还是 “比较”，只关心「表达式最终的结果值」
         printf("未找到该学号的学生！\n");
     }
 }
@@ -110,8 +113,8 @@ float calcAvgMood(int *count){
     for (int i=0;i<*count;i++){
         total+=class1[i].mood;
     }
-    average=(float)total/(*count);
-    return average;
+    average=(float)total/(*count); //强制数据类型转换，需要得到一个float型
+    return average; //返回average，给main函数使用
 }
 
 void sortAndShow(int *count){
@@ -119,10 +122,10 @@ void sortAndShow(int *count){
         printf("无需排序！");
         return;
     }
-    for (int i=0;i<*count-1;i++){
-        for (int j=0;j<*count-1;j++){
-            if (class1[i].mood<class1[j].mood){
-                struct Student temp=class1[i];
+    for (int i=0;i<*count-1;i++){ //外层循环:排序一共进行n-1轮
+        for (int j=0;j<*count-1-i;j++){ //内层循环:i为已经排好元素个数,后要比较(n-1-i)次           
+            if (class1[j].mood<class1[j+1].mood){ //前面如果比后面小，交换
+                struct Student temp=class1[j]; //以第一个元素为基准逐个和后面元素比较
                 class1[j]=class1[j+1];
                 class1[j+1]=temp;
             }
@@ -138,9 +141,9 @@ void sortAndShow(int *count){
 
 int main(){
     int count=0;//定义的是局部变量，则函数要加int *count，通过指针参数接收地址修改count
-    addStudent(&count);
+    addStudent(&count); 
     queryMood(&count);
-    float avg = calcAvgMood(&count); // 用 avg 变量“接住”计算器递来的结果
+    float avg = calcAvgMood(&count); // 用avg变量“接住”计算器递来的结果
     printf("同学们的心情指数平均值为：%.1f\n",avg);
     sortAndShow(&count);
 }
