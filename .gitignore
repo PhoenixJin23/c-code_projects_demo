@@ -9,3 +9,5 @@
 Debug/
 Release/
 build/
+
+temp_time.c
