@@ -11,3 +11,5 @@ Release/
 build/
 
 temp_time.c
+books.txt
+history.txt 
