@@ -21,7 +21,7 @@ struct History {
     time_t date;
     bool is_returned;
 };
-struct History history[5];
+struct History history[500];
 
 int book_count=0;
 int borrow_count=0;
@@ -31,13 +31,13 @@ void introBooks(){
     char author[50];
     int book_id;
     int stock;
-    bool same=0; //初始是不同的，0表示False
     char choice='y';
     do {
         if (book_count>=MAX_BOOKS){
             printf("图书馆已达最大存书量上限！\n");
             return;
         }
+        bool same=0; //初始是不同的，0表示False
         printf("请输入您引进的书的名字：\n");
         scanf("%s",book_name);
         printf("该书的作者是:\n");
@@ -50,12 +50,12 @@ void introBooks(){
         for (int i=0;i<book_count;i++){
             if (book[i].book_id==book_id){
                 same=1;
-                break;
+                break; //跳出for循环，已找到重复（不用再遍历）
             }
         }
         if (same==1){
             printf("已存过该书！请换一本书！\n");
-            continue;
+            continue; //回到do-while循环开头，重新输入书号
         }
         book[book_count].book_id=book_id;
         strcpy(book[book_count].book_name,book_name);
@@ -72,14 +72,14 @@ void introBooks(){
 
 
 void borrowBooks(){
-    int wantid;
-    int stuid;
+    int wantid,stuid;
     char borrow_choice='y';
     int current_borrows=0;
 
     printf("请输入您的学号：\n");
     scanf("%d",&stuid);
-
+    
+    //统计该用户当前未还书的数量
     for (int i=0;i<borrow_count;i++){
         if (history[i].borrower_id==stuid && !history[i].is_returned){
             current_borrows++;
@@ -89,7 +89,7 @@ void borrowBooks(){
     if (current_borrows>=MAX_BORROW){
             printf("您已达到借书上限，不能再借了！\n");
             return;
-        }
+    }
 
     do {
         bool found=false;
@@ -105,7 +105,7 @@ void borrowBooks(){
                     printf("该书可借！\n");
                     can_borrow=true;
                 }
-                break;
+                break; //跳出for循环
             }
         }
         if (!found){
@@ -127,7 +127,7 @@ void borrowBooks(){
         }
         if (current_borrows>=MAX_BORROW){
             printf("您已达借阅上限！\n");
-            break;
+            break; //跳出do-while循环，不再继续借书了
         }
         printf("还要借书吗？\n");
         scanf(" %c",&borrow_choice);
@@ -140,10 +140,11 @@ void borrowBooks(){
 struct Book* idGetBook(int isborrowed_id){ //根据书号，返回对应book结构体指针
     for (int i=0;i<book_count;i++){
         if (book[i].book_id==isborrowed_id){
-            return &book[i]; //返回该书籍的地址
+            return &book[i]; //找到匹配的书号→直接返回该书籍的地址，函数结束
         }
     }
-    return NULL;
+    return NULL; //如果遍历完还没有找到匹配的书号，返回一个NULL值
+                //和for循环是并列的关系，是“兜底逻辑”
 }
 
 
@@ -191,8 +192,8 @@ void returnBooks(){
     printf("请输入您的学号：\n");
     scanf("%d",&stuid);
 
-        printf("您当前未归还的书籍：\n");
-    int unreturned_count = 0;
+    printf("您当前未归还的书籍：\n");
+    int unreturned_count=0;
     int unreturned_ids[5];
     
     for (int i=0;i<borrow_count;i++) {
@@ -209,7 +210,7 @@ void returnBooks(){
         }
     }
     
-    if (unreturned_count == 0) {
+    if (unreturned_count==0) {
         printf("您没有待归还的书籍！\n");
         return;
     }
@@ -219,13 +220,13 @@ void returnBooks(){
     if (wannareturn=='y'||wannareturn=='Y'){
         for (int i=0;i<borrow_count;i++){
             if (history[i].borrower_id==stuid && !history[i].is_returned){
+                history[i].is_returned=true;
+                returncount++;
                 struct Book* p_book=idGetBook(history[i].isborrowed_id);
                 if (p_book!=NULL){
                     p_book->stock++;
                 }
-                history[i].is_returned=true;
             }
-    
         }
         printf("已成功归还%d本书！\n",returncount);
     }
@@ -330,17 +331,45 @@ void loadHistory(){
 
 
 int main(){
+    char choice;
     //程序启动，加载保存的数据
     loadBooks();
     loadHistory();
 
-    introBooks();
-    borrowBooks();
-    queryBorrow();
-    returnBooks();
+    do {
+        printf("\n===== 图书馆管理系统 =====\n");
+        printf("1.新增书籍\n");
+        printf("2.借阅书籍\n");
+        printf("3.一键归还本次书籍\n");
+        printf("4.查询所有借阅记录\n");
+        printf("5.保存数据\n");
+        printf("0.退出系统\n");
+        printf("请选择功能（0-5）：");
+        scanf(" %c",&choice);
 
-    //退出程序前，保存数据
-    saveBooks();
-    saveHistory();
+        switch (choice){
+            case '1':
+                introBooks();
+                break;
+            case '2':
+                borrowBooks();
+                break;
+            case '3':
+                returnBooks();
+                break;
+            case '4':
+                queryBorrow();
+                break;
+            case '5':
+                saveBooks();
+                saveHistory();
+                break;
+            case '0':
+                printf("退出系统，数据已自动保存！\n");
+                break;
+            default: 
+                printf("无效选择，请重新输入！\n");
+        }
+    }while (choice!='0');
     return 0;
 }
