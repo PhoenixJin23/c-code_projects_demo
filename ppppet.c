@@ -11,6 +11,41 @@ struct Pet pet[10];
 int count=0;
 
 
+void savePetToFile(){
+    FILE* fp=fopen("pet_data.txt","w");
+    if (fp==NULL){
+        printf("文件保存失败！\n");
+        return;
+    }
+    fprintf(fp,"=====宠物信息记录表=====\n");
+    fprintf(fp,"宠物总数：%d\n",count);
+    for (int i=0;i<count;i++){
+        fprintf(fp,"宠物%d:编号:%d,名字:%s,健康指数:%d\n",
+                i+1,pet[i].id,pet[i].name,pet[i].health);
+    }
+    fclose(fp);
+    printf("宠物数据已保存到pet_data.txt！\n");
+}
+
+
+void loadPetFromFile(){
+    FILE* fp=fopen("pet_data.txt","r");
+    if (fp==NULL){
+        printf("暂无历史宠物数据，将创建新数据！\n");
+        return;
+    }
+    char buffer[100]; //用来存文件里的说明文字（跳过不用）
+    fgets(buffer,100,fp); //跳过第一行说明（"=====宠物信息记录表=====\n"）
+    fscanf(fp,"宠物总数：%d\n",&count);
+    for (int i=0;i<count;i++){
+        fscanf(fp,"宠物%d:编号:%d,名字:%s,健康指数:%d\n",
+                &i,&pet[i].id,pet[i].name,&pet[i].health); //&i只是占位
+    }
+    fclose(fp);
+    printf("成功加载%d条宠物历史数据！\n",count);
+}
+
+
 /*将用户输入的宠物数据经过去重、判断合法性后存在数组里*/
 void addPet(){
     int ip_id;
@@ -132,6 +167,8 @@ void sortHealth(){
 
 int main(){
     addPet();
+    savePetToFile();
+    loadPetFromFile();
     healthRequest();
     float avg=calAvgHealth(); //需要用一个变量接住函数传来的值
     if (count>0){
